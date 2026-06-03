@@ -1,11 +1,13 @@
 name: APK Downloader
 
 on:
+  schedule:
+    - cron: '0 0 * * *' # Runs every day at midnight UTC
   workflow_dispatch:
     inputs:
       proxy_url:
-        description: 'Ngrok Proxy URL (e.g. http://0.tcp.ngrok.io:12345)'
-        required: true
+        description: 'Ngrok Proxy URL (Optional - leave blank to use GitHub IP)'
+        required: false
         type: string
 
 permissions:
@@ -34,8 +36,8 @@ jobs:
         run: |
           # Create builds directory to ensure it exists
           mkdir -p builds
-          # Pass '5' for Download All and press enter twice to clear any extra prompts
-          printf "5\n\n\n\n\n" | python apkmcli
+          # Run script in automated mode
+          python apkmcli --download-all
 
       - name: Get Date
         id: date

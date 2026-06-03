@@ -93,6 +93,18 @@ def download_app(app_name, version):
 
 def main():
     import json
+    
+    # Check for non-interactive flag
+    if len(sys.argv) > 1 and sys.argv[1] == "--download-all":
+        try:
+            with open("apps.json", "r") as f:
+                apps_config = json.load(f)
+        except Exception as e:
+            sys.exit(f"Failed to read apps.json: {e}")
+        for app_name, version in apps_config.items():
+            download_app(app_name, version)
+        return
+
     apps = ["YouTube", "YouTube Music", "X"]
     print("Select an app to search:")
     for i, app in enumerate(apps):
