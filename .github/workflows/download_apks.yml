@@ -1,0 +1,51 @@
+name: APK Downloader
+
+on:
+  workflow_dispatch:
+    inputs:
+      proxy_url:
+        description: 'Ngrok Proxy URL (e.g. http://0.tcp.ngrok.io:12345)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  download-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install beautifulsoup4 cloudscraper requests
+
+      - name: Run APK Scraper
+        env:
+          HTTP_PROXY: ${{ inputs.proxy_url }}
+          HTTPS_PROXY: ${{ inputs.proxy_url }}
+        run: |
+          # Create builds directory to ensure it exists
+          mkdir -p builds
+          # Pass '5' for Download All and press enter twice to clear any extra prompts
+          printf "5\n\n\n\n\n" | python apkmcli
+
+      - name: Get Date
+        id: date
+        run: echo "date=$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release and Upload APKs
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release-${{ steps.date.outputs.date }}
+          name: APK Builds - ${{ steps.date.outputs.date }}
+          files: builds/*.apk
+          body: |
+            Automated APK fetch via GitHub Actions.
